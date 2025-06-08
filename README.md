@@ -6,6 +6,7 @@
   <title>NIXEL Token | BSC</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans">
 
@@ -15,65 +16,17 @@
     <p class="mt-4 text-lg md:text-xl text-gray-300 max-w-xl mx-auto">
       The next big utility token on Binance Smart Chain with dynamic stage-based sales and zero taxes.
     </p>
-    <a href="#how-to-buy" class="mt-8 inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition">Buy Now with Web3 Wallet</a>
-  </section>
-
-  <!-- Tokenomics -->
-  <section class="bg-gray-800 py-16 px-6">
-    <div class="max-w-5xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-6 text-blue-300">Tokenomics</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gray-700 p-6 rounded-xl">
-          <h3 class="text-xl font-semibold mb-2">Total Supply</h3>
-          <p>5 Billion NIX Tokens</p>
-        </div>
-        <div class="bg-gray-700 p-6 rounded-xl">
-          <h3 class="text-xl font-semibold mb-2">Tax</h3>
-          <p>No buy or sell taxes</p>
-        </div>
-        <div class="bg-gray-700 p-6 rounded-xl">
-          <h3 class="text-xl font-semibold mb-2">Sale Stages</h3>
-          <p>
-            - Stage 1: 2B @ $0.000095<br>
-            - Stage 2: 1.5B @ $0.0005<br>
-            - Stage 3: 0.5B @ $0.00085
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- How to Buy -->
-  <section id="how-to-buy" class="py-16 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-8 text-blue-300">How to Buy</h2>
-      <p class="text-lg mb-6">You can buy NIXEL tokens directly from the smart contract using any Web3 wallet such as MetaMask or Trust Wallet. Payment is accepted in <strong>BNB only</strong>.</p>
-      <ol class="list-decimal text-left text-lg space-y-4">
-        <li>Open your Web3 wallet (MetaMask, Trust Wallet...)</li>
-        <li>Connect to Binance Smart Chain (BSC)</li>
-        <li>Go to the contract page on BscScan</li>
-        <li>Click "Write Contract" → Connect Wallet</li>
-        <li>Use the buy function and send the BNB amount</li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- Roadmap -->
-  <section class="py-16 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-8 text-blue-300">Roadmap</h2>
-      <ol class="list-decimal text-left text-lg space-y-4">
-        <li>Launch the official website</li>
-        <li>Deploy and verify the smart contract</li>
-        <li>Start dynamic token sales through contract</li>
-        <li>Community building on Telegram, Twitter</li>
-        <li>Auto-listing on PancakeSwap</li>
-        <li>Apply for CoinMarketCap and CoinGecko listings</li>
-        <li>Launch NFT Marketplace and staking</li>
-        <li>Introduce NIXEL Wallet App</li>
-        <li>List on Tier-2 exchanges</li>
-        <li>Expand to multi-chain support</li>
-      </ol>
+    <div class="mt-8 flex justify-center items-center space-x-4">
+      <input
+        type="number"
+        id="bnbAmount"
+        placeholder="Enter BNB amount"
+        step="0.001"
+        min="0.001"
+        class="w-40 px-4 py-2 rounded text-gray-900 font-semibold"
+      />
+      <button id="connectWallet" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition">Connect Wallet</button>
+      <button id="buyButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition">Buy Now</button>
     </div>
   </section>
 
@@ -86,27 +39,78 @@
         <p id="price">Loading current price...</p>
         <p id="sold">Loading total sold tokens...</p>
         <p id="left">Loading remaining tokens in this stage...</p>
+        <p id="bnb">Loading total BNB received...</p>
       </div>
     </div>
   </section>
 
-  <!-- Contact & Footer -->
   <footer class="bg-gray-800 py-10 text-center">
     <p class="mb-4">Smart Contract Address:</p>
-    <code class="bg-gray-700 p-2 rounded">0x9EB6c8C1877BF58BCd8680E057C3780B14749625</code>
+    <code class="bg-gray-700 p-2 rounded">0xC89334a5aa130C6E9162cF45Db33168d078eFE80</code>
     <div class="mt-6 space-x-4">
       <a href="https://t.me/nixelcommunity" target="_blank" class="text-blue-400 hover:underline">Telegram</a>
-      <a href="https://bscscan.com/address/0x9EB6c8C1877BF58BCd8680E057C3780B14749625" target="_blank" class="text-blue-400 hover:underline">View on BscScan</a>
+      <a href="https://bscscan.com/address/0xC89334a5aa130C6E9162cF45Db33168d078eFE80" target="_blank" class="text-blue-400 hover:underline">View on BscScan</a>
     </div>
     <p class="mt-6 text-sm text-gray-400">© 2025 NIXEL Token. All rights reserved.</p>
   </footer>
 
   <script>
-    // تحديث بيانات المراحل حسب التوكنات المباعة يدويًا
+    // Wallet connection
+    let web3;
+    let userAccount;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        try {
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          userAccount = accounts[0];
+          document.getElementById('connectWallet').textContent = 'Connected';
+          console.log("Wallet connected:", userAccount);
+        } catch (error) {
+          alert('Wallet connection denied');
+        }
+      } else {
+        alert('Please install MetaMask');
+      }
+    }
+
+    document.getElementById('connectWallet').addEventListener('click', connectWallet);
+
+    async function buyToken() {
+      if (!web3 || !userAccount) {
+        alert('Please connect your wallet first.');
+        return;
+      }
+      const contractAddress = '0xC89334a5aa130C6E9162cF45Db33168d078eFE80';
+      const bnbInput = document.getElementById('bnbAmount').value;
+      if (!bnbInput || isNaN(bnbInput) || Number(bnbInput) <= 0) {
+        alert('Please enter a valid BNB amount greater than 0.');
+        return;
+      }
+
+      try {
+        const tx = await web3.eth.sendTransaction({
+          from: userAccount,
+          to: contractAddress,
+          value: web3.utils.toWei(bnbInput, 'ether')
+        });
+        console.log("Transaction sent:", tx);
+        alert("Purchase successful!");
+      } catch (error) {
+        console.error(error);
+        alert("Transaction failed.");
+      }
+    }
+
+    document.getElementById('buyButton').addEventListener('click', buyToken);
+
+    // تحديث بيانات التوكن (ثابتة حتى الآن)
     const stage1Cap = 2000000000;
     const stage2Cap = 1500000000;
     const stage3Cap = 500000000;
-    const totalSold = 650000000; // <-- القيمة الحالية من البوت
+    const totalSold = 650000000;
+    const bnbReceived = 61750;
 
     let stage, price, remaining;
 
@@ -128,7 +132,7 @@
     document.getElementById('price').textContent = `Current Price: ${price}`;
     document.getElementById('sold').textContent = `Total Sold Tokens: ${totalSold.toLocaleString()} NIX`;
     document.getElementById('left').textContent = `Remaining in This Stage: ${remaining.toLocaleString()} NIX`;
+    document.getElementById('bnb').textContent = `Total BNB Value Received: ~$${bnbReceived.toLocaleString()}`;
   </script>
-
 </body>
 </html>
